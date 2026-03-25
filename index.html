@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolução Médica - POMR</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            padding: 16px;
+            margin: 0;
+            color: #333;
+        }
+        h2 {
+            font-size: 18px;
+            color: #0056b3;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+        }
+        .card {
+            background-color: white;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px; 
+            background-color: white;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row > div {
+            flex: 1;
+        }
+        
+        .input-com-botao {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .input-com-botao input {
+            margin-top: 0;
+            flex: 1; 
+        }
+        .btn-add {
+            width: 44px;
+            margin-top: 0;
+            background-color: #0056b3;
+            font-size: 24px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .lista-problemas {
+            margin-top: 12px;
+            padding-left: 24px;
+            color: #444;
+        }
+        .lista-problemas li {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .btn-remover {
+            background-color: #dc3545;
+            width: auto;
+            padding: 6px 12px;
+            margin-top: 0;
+            font-size: 12px;
+            border-radius: 4px;
+            color: white; 
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-gerar { 
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background-color: #0056b3; 
+        }
+        .btn-copiar { 
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background-color: #28a745; 
+            display: none; 
+        } 
+        #resultadoArea {
+            display: none; 
+            margin-top: 20px;
+        }
+        #textoFinal {
+            height: 450px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Etapa 1: Identificação</h2>
+        <label>Nome do Paciente</label>
+        <input type="text" id="nome" placeholder="Ex: João da Silva">
+        
+        <div class="row">
+            <div>
+                <label>Leito</label>
+                <input type="text" id="leito" placeholder="Ex: UTI 05">
+            </div>
+            <div>
+                <label>Idade</label>
+                <input type="number" id="idade" placeholder="Ex: 65">
+            </div>
+        </div>
+        
+        <label>Data de Internação</label>
+        <input type="date" id="dataInternacao">
+    </div>
+
+    <div class="card">
+        <h2>Etapa 2: Lista de Problemas</h2>
+        <label>Adicione os problemas ativos/inativos:</label>
+        <div class="input-com-botao">
+            <input type="text" id="inProblema" placeholder="Ex: Lesão Renal Aguda" onkeypress="verificarEnter(event, 'problemas', 'inProblema', 'uiProblemas')">
+            <button type="button" class="btn-add" onclick="adicionarItem('problemas', 'inProblema', 'uiProblemas')">+</button>
+        </div>
+        <ol id="uiProblemas" class="lista-problemas"></ol>
+    </div>
+
+    <div class="card">
+        <h2>Etapa 3: Situação</h2>
+        <label>História da Moléstia Atual</label>
+        <textarea id="hma" rows="4">Trata-se de paciente admitido no leito devido a [comorbidade/problema], com proposta de [elucidação/terapia]. Refere que os sintomas de [sinais/sintomas] se iniciaram no dia [data], sendo necessário [ir à UPA/Ligar para o SAMU].</textarea>
+    </div>
+
+    <div class="card">
+        <h2>Etapa 4: Histórico Pregresso</h2>
+        
+        <label>História Patológica</label>
+        <div class="input-com-botao">
+            <input type="text" id="inPatologica" placeholder="Ex: HAS, DM2" onkeypress="verificarEnter(event, 'patologica', 'inPatologica', 'uiPatologica')">
+            <button type="button" class="btn-add" onclick="adicionarItem('patologica', 'inPatologica', 'uiPatologica')">+</button>
+        </div>
+        <ol id="uiPatologica" class="lista-problemas"></ol>
+
+        <label>História Social</label>
+        <div class="input-com-botao">
+            <input type="text" id="inSocial" placeholder="Ex: Tabagista 20 maços/ano" onkeypress="verificarEnter(event, 'social', 'inSocial', 'uiSocial')">
+            <button type="button" class="btn-add" onclick="adicionarItem('social', 'inSocial', 'uiSocial')">+</button>
+        </div>
+        <ol id="uiSocial" class="lista-problemas"></ol>
+
+        <label>História Cirúrgica</label>
+        <div class="input-com-botao">
+            <input type="text" id="inCirurgica" placeholder="Ex: Apendicectomia há 10 anos" onkeypress="verificarEnter(event, 'cirurgica', 'inCirurgica', 'uiCirurgica')">
+            <button type="button" class="btn-add" onclick="adicionarItem('cirurgica', 'inCirurgica', 'uiCirurgica')">+</button>
+        </div>
+        <ol id="uiCirurgica" class="lista-problemas"></ol>
+
+        <label>História Medicamentosa</label>
+        <div class="input-com-botao">
+            <input type="text" id="inMedicamentosa" placeholder="Ex: Losartana 50mg/dia" onkeypress="verificarEnter(event, 'medicamentosa', 'inMedicamentosa', 'uiMedicamentosa')">
+            <button type="button" class="btn-add" onclick="adicionarItem('medicamentosa', 'inMedicamentosa', 'uiMedicamentosa')">+</button>
+        </div>
+        <ol id="uiMedicamentosa" class="lista-problemas"></ol>
+
+        <label>Alergias</label>
+        <select id="alergiasSelect" onchange="verificarAlergias()">
+            <option value="Não sabe informar">Não sabe informar</option>
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+        </select>
+
+        <div id="areaAlergias" style="display: none; margin-top: 16px;">
+            <label style="font-weight: normal; color: #555;">Descreva a(s) alergia(s):</label>
+            <div class="input-com-botao">
+                <input type="text" id="inAlergia" placeholder="Ex: Dipirona, Penicilina" onkeypress="verificarEnter(event, 'alergias', 'inAlergia', 'uiAlergias')">
+                <button type="button" class="btn-add" onclick="adicionarItem('alergias', 'inAlergia', 'uiAlergias')">+</button>
+            </div>
+            <ol id="uiAlergias" class="lista-problemas"></ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Etapa 5: Avaliação Diária</h2>
+        
+        <label>Evolução Diária</label>
+        <textarea id="evolucaoDiaria" rows="5">Avalio paciente no [Xº] dia de internação por [Diagnóstico Inicial], apresentando-se clinicamente [estável/instável]. Nas últimas 24h, houve [melhora/piora/estabilidade] do quadro de [queixa principal]. À beira do leito, a impressão inicial é de [bom/regular/mau] estado geral, com sinais de [euvolemia/hipervolemia], [má perfusão/boa perfusão] e [desconforto respiratório/bom padrão respiratório].</textarea>
+
+        <label>Uso de Antibióticos</label>
+        <select id="atbSelect" onchange="verificarATB()">
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+        </select>
+
+        <div id="areaATB" style="display: none; margin-top: 16px;">
+            <label style="font-weight: normal; color: #555;">Medicamento e Data de Início:</label>
+            <div class="input-com-botao">
+                <input type="text" style="flex: 2;" id="inAntibiotico" placeholder="Ex: Ceftriaxona" onkeypress="verificarEnterATB(event)">
+                <input type="date" style="flex: 1;" id="inDataAtb" onkeypress="verificarEnterATB(event)">
+                <button type="button" class="btn-add" onclick="adicionarAntibiotico()">+</button>
+            </div>
+            <ol id="uiAntibioticos" class="lista-problemas"></ol>
+        </div>
+        
+        <label>Sinais Vitais</label>
+        <div class="row">
+            <div><label style="margin-top: 4px;">FC</label><input type="number" id="fc" placeholder="bpm"></div>
+            <div><label style="margin-top: 4px;">FR</label><input type="number" id="fr" placeholder="irpm"></div>
+            <div><label style="margin-top: 4px;">PA</label><input type="text" id="pa" placeholder="mmHg"></div>
+        </div>
+        <div class="row">
+            <div><label style="margin-top: 4px;">Temp</label><input type="number" id="temp" placeholder="°C"></div>
+            <div><label style="margin-top: 4px;">SpO2</label><input type="number" id="spo2" placeholder="%"></div>
+            <div><label style="margin-top: 4px;">Diurese</label><input type="text" id="diurese" placeholder="ml/kg/h"></div>
+        </div>
+
+        <label>Exame Físico (Edite o necessário)</label>
+        <textarea id="exameFisico" rows="5">Bom estado geral, eupneico, acianótico, anictérico. AC: Ritmo cardíaco regular, em 2 tempos, bulhas normofonéticas, sem sopros. AR: Murmúrio vesicular universalmente audível, sem ruídos adventícios. Abdome: Plano, flácido, indolor, RHA presentes. Extremidades: Bem perfundidas, sem edemas, pulsos palpáveis e simétricos.</textarea>
+        
+        <label>Exames Complementares</label>
+        <textarea id="exames" rows="3" placeholder="Resultados de laboratório e imagem do dia"></textarea>
+    </div>
+
+    <div class="card">
+        <h2>Etapa 6: Condutas e Plano</h2>
+        <label>Plano Terapêutico</label>
+        <textarea id="plano" rows="4" placeholder="O que será feito para cada problema da lista?"></textarea>
+    </div>
+
+    <button type="button" class="btn-gerar" onclick="gerarEvolucao()">Gerar Evolução</button>
+
+    <div id="resultadoArea" class="card">
+        <h2>Evolução Pronta</h2>
+        <textarea id="textoFinal" readonly></textarea>
+        <button type="button" class="btn-copiar" id="btnCopiar" onclick="copiarTexto()">Copiar para Área de Transferência</button>
+    </div>
+
+    <script>
+        let listasDinamicas = {
+            problemas: [],
+            patologica: [],
+            social: [],
+            cirurgica: [],
+            medicamentosa: [],
+            alergias: [],
+            antibioticos: []
+        };
+
+        function verificarEnter(evento, chave, idInput, idUI) {
+            if (evento.key === 'Enter') {
+                evento.preventDefault(); 
+                adicionarItem(chave, idInput, idUI);
+            }
+        }
+
+        function verificarEnterATB(evento) {
+            if (evento.key === 'Enter') {
+                evento.preventDefault(); 
+                adicionarAntibiotico();
+            }
+        }
+
+        function adicionarItem(chave, idInput, idUI) {
+            const input = document.getElementById(idInput);
+            const texto = input.value.trim(); 
+            if (texto !== "") {
+                listasDinamicas[chave].push(texto); 
+                input.value = ""; 
+                renderizarLista(chave, idUI); 
+            }
+        }
+
+        function removerItem(chave, posicao, idUI) {
+            listasDinamicas[chave].splice(posicao, 1);
+            renderizarLista(chave, idUI); 
+        }
+
+        function renderizarLista(chave, idUI) {
+            const listaUI = document.getElementById(idUI);
+            listaUI.innerHTML = ""; 
+            
+            listasDinamicas[chave].forEach(function(item, posicao) {
+                const li = document.createElement('li'); 
+                const span = document.createElement('span'); 
+                span.textContent = item;
+                
+                const btn = document.createElement('button'); 
+                btn.textContent = "Apagar";
+                btn.className = "btn-remover";
+                btn.type = "button"; 
+                btn.onclick = function() { removerItem(chave, posicao, idUI); };
+                
+                li.appendChild(span); 
+                li.appendChild(btn); 
+                listaUI.appendChild(li); 
+            });
+        }
+
+        function verificarAlergias() {
+            const select = document.getElementById('alergiasSelect').value;
+            const areaAlergias = document.getElementById('areaAlergias');
+            areaAlergias.style.display = select === 'Sim' ? 'block' : 'none';
+        }
+
+        function verificarATB() {
+            const select = document.getElementById('atbSelect').value;
+            const areaATB = document.getElementById('areaATB');
+            areaATB.style.display = select === 'Sim' ? 'block' : 'none';
+        }
+
+        function adicionarAntibiotico() {
+            const inputNome = document.getElementById('inAntibiotico');
+            const inputData = document.getElementById('inDataAtb');
+            const nome = inputNome.value.trim();
+            const dataVal = inputData.value;
+
+            if (nome !== "") {
+                let textoFinal = nome;
+
+                if (dataVal) {
+                    const partes = dataVal.split('-');
+                    if (partes.length === 3) {
+                        const dataInicio = new Date(partes[0], partes[1] - 1, partes[2]);
+                        const hoje = new Date();
+                        
+                        hoje.setHours(0, 0, 0, 0);
+                        dataInicio.setHours(0, 0, 0, 0);
+                        
+                        const diffTempo = hoje.getTime() - dataInicio.getTime();
+                        const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDias >= 0) {
+                            textoFinal += " - D" + (diffDias + 1);
+                        } else {
+                            textoFinal += " (Início no futuro)";
+                        }
+                    }
+                }
+
+                listasDinamicas['antibioticos'].push(textoFinal);
+                inputNome.value = "";
+                inputData.value = ""; 
+                renderizarLista('antibioticos', 'uiAntibioticos');
+            }
+        }
+
+        function formatarLista(chave, textoVazio) {
+            if (listasDinamicas[chave].length > 0) {
+                return listasDinamicas[chave].map(function(item, index) {
+                    return (index + 1) + ". " + item;
+                }).join('\n'); // Alterei para quebra de linha para ficar mais limpo na nova estrutura
+            }
+            return textoVazio;
+        }
+
+        function calcularDiasInternacao(dataInput) {
+            if (!dataInput) return "Data não informada";
+            const partes = dataInput.split('-');
+            if (partes.length !== 3) return "Data inválida";
+            const dataAdmissao = new Date(partes[0], partes[1] - 1, partes[2]);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            dataAdmissao.setHours(0, 0, 0, 0);
+            const diferencaTempo = hoje.getTime() - dataAdmissao.getTime();
+            const diferencaDias = Math.floor(diferencaTempo / (1000 * 60 * 60 * 24));
+            if (diferencaDias < 0) return "Data futura inválida";
+            return diferencaDias + " dia(s)";
+        }
+
+        function formatarDataBR(dataInput) {
+            if (!dataInput) return "---";
+            const partes = dataInput.split('-');
+            if (partes.length !== 3) return "---";
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function gerarEvolucao() {
+            // Etapa 1
+            const nome = document.getElementById('nome').value || "Não informado";
+            const leito = document.getElementById('leito').value || "---";
+            const idade = document.getElementById('idade').value || "---";
+            const dataInput = document.getElementById('dataInternacao').value;
+            const tempoInternacao = calcularDiasInternacao(dataInput);
+            const dataFormatada = formatarDataBR(dataInput);
+
+            // Etapa 2
+            const strProblemas = formatarLista('problemas', 'Nenhum problema listado');
+
+            // Etapa 3
+            const hma = document.getElementById('hma').value || "---";
+
+            // Etapa 4
+            // Voltei para separação por " | " nas linhas do histórico pregresso para economizar espaço vertical
+            const formatarInline = (chave, vazio) => listasDinamicas[chave].length > 0 ? listasDinamicas[chave].join(' | ') : vazio;
+            const strPatologica = formatarInline('patologica', 'Nega / Não relatado');
+            const strSocial = formatarInline('social', 'Nega / Não relatado');
+            const strCirurgica = formatarInline('cirurgica', 'Nega / Não relatado');
+            const strMedicamentosa = formatarInline('medicamentosa', 'Nega / Não relatado');
+            
+            let valAlergias = document.getElementById('alergiasSelect').value;
+            let strAlergias = valAlergias;
+            if (valAlergias === 'Sim') {
+                strAlergias = formatarInline('alergias', 'Nenhuma alergia especificada');
+            }
+
+            // Etapa 5
+            const evolucaoDiaria = document.getElementById('evolucaoDiaria').value || "---";
+            const fc = document.getElementById('fc').value || "--";
+            const fr = document.getElementById('fr').value || "--";
+            const pa = document.getElementById('pa').value || "--";
+            const temp = document.getElementById('temp').value || "--";
+            const spo2 = document.getElementById('spo2').value || "--";
+            const diurese = document.getElementById('diurese').value || "--";
+            const exameFisico = document.getElementById('exameFisico').value || "---";
+            const exames = document.getElementById('exames').value || "Sem exames novos no dia.";
+            
+            let valATB = document.getElementById('atbSelect').value;
+            let strATB = valATB;
+            if (valATB === 'Sim') {
+                strATB = "\n" + formatarLista('antibioticos', 'Nenhum antibiótico especificado'); // Quebra de linha para ATBs
+            }
+
+            // Etapa 6
+            const plano = document.getElementById('plano').value || "---";
+
+            // MUDANÇA AQUI: Montagem do Texto Final na Ordem Exata das Etapas
+            const evolucaoFinal = `--- 1. IDENTIFICAÇÃO ---
+Paciente: ${nome} | Leito: ${leito} | Idade: ${idade}
+Tempo de Internação: ${tempoInternacao} (Admissão: ${dataFormatada})
+
+--- 2. LISTA DE PROBLEMAS ---
+${strProblemas}
+
+--- 3. SITUAÇÃO ---
+${hma}
+
+--- 4. HISTÓRICO PREGRESSO ---
+- Patológica: ${strPatologica}
+- Social: ${strSocial}
+- Cirúrgica: ${strCirurgica}
+- Medicamentosa: ${strMedicamentosa}
+- Alergias: ${strAlergias}
+
+--- 5. AVALIAÇÃO DIÁRIA ---
+Evolução:
+${evolucaoDiaria}
+
+Uso de Antibióticos: ${strATB}
+
+Sinais Vitais: FC ${fc} bpm | FR ${fr} irpm | PA ${pa} mmHg | Temp ${temp} °C | SpO2 ${spo2}% | Diurese: ${diurese}
+
+Exame Físico: 
+${exameFisico}
+
+Exames Complementares:
+${exames}
+
+--- 6. CONDUTAS E PLANO ---
+${plano}`;
+
+            document.getElementById('textoFinal').value = evolucaoFinal;
+            document.getElementById('resultadoArea').style.display = 'block';
+            document.getElementById('btnCopiar').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function copiarTexto() {
+            const textoArea = document.getElementById('textoFinal');
+            textoArea.select(); 
+            textoArea.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(textoArea.value).then(() => {
+                alert("Evolução copiada com sucesso! Pronta para colar no prontuário.");
+            }).catch(err => {
+                alert("Erro ao copiar. Você pode selecionar o texto manualmente e copiar.");
+            });
+        }
+    </script>
+</body>
+</html>
